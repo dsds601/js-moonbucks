@@ -4,18 +4,25 @@
 // 에스프레소 메뉴에 새로운 메뉴를 확인 버튼 또는 엔터키 입력으로 추가한다.
 //  메뉴가 추가되고 나면, input은 빈 값으로 초기화한다.
 //  사용자 입력값이 빈 값이라면 추가되지 않는다.
+// TODO 수정
 //  메뉴의 수정 버튼을 눌러 메뉴 이름 수정할 수 있다. -> 모달창이 뜨떠서 이름을 받음
 //  메뉴 수정시 브라우저에서 제공하는 prompt 인터페이스를 활용한다.
-//  메뉴 삭제 버튼을 이용하여 메뉴 삭제할 수 있다.
-//  메뉴 삭제시 브라우저에서 제공하는 confirm 인터페이스를 활용한다.
-//  총 메뉴 갯수를 count하여 상단에 보여준다.
-// 추가되는 메뉴의 아래 마크업은 <ul id="espresso-menu-list" class="mt-3 pl-0"></ul> 안에 삽입해야 한다.
+
+// TODO 삭제
+    //TODO 삭제 버튼
+    // 메뉴 삭제버튼 클릭 이벤트 -> 삭제 컨펌 모달
+    // 확인 -> 삭제
+    // 삭제 후 총 갯수
 
 // $ 표시는 html에 DOM element를 가져올때 관용적으로 사용합니다. 
 // 람다식 => 한줄이면 바로 리턴값이 나옵니다.
 const $ = (selector) => document.querySelector(selector);
 
 function App(){
+
+    const updateMenuCount = () => {
+        $(".menu-count").innerText = `총 ${$("#espresso-menu-list").querySelectorAll("li").length}개`;
+    }
     
     $('#espresso-menu-list').addEventListener("click",(e) => {
         //target으로 element를 확인 할 수 있다. 부모 태그를 잡아 이벤트리스너로 이벤트를 위임할 수 있다.
@@ -28,7 +35,14 @@ function App(){
             const updatedMenuName = prompt("메뉴명을 수정하세요",$menuName.innerText);
             $menuName.innerText = updatedMenuName;
         }
-    })
+
+        if(e.target.classList.contains('menu-remove-button')){
+            if(confirm("정말 삭제하시겠습니까?")) {
+                e.target.closest("li").remove();
+                updateMenuCount();
+            }
+        }
+    });
 
     // form 태그가 전송되는것을 막아준다.
     $('#espresso-menu-form').addEventListener("submit",(e) =>{
@@ -63,23 +77,18 @@ function App(){
             "beforeend",
             menuItemTemplate(espressoMenuName)
         );
-    }
+        updateMenuCount();
+        $('#espresso-menu-name').value ='';
+    };
+
+    $('#espresso-menu-name').addEventListener("keypress",(e) => {
+        if(e.key === 'Enter'){
+            addMenuName();
+        }
+    })
 
     $('#espresso-menu-submit-button').addEventListener("click",() => {
         addMenuName();
-    })
-
-    //메뉴의 이름을 입력 받는건
-    $('#espresso-menu-name')
-    .addEventListener("keypress",(e)=>{
-        if (e.key === "Enter"){
-            addMenuName();
-            //list 갯수 
-            const menuCount = $('#espresso-menu-list').querySelectorAll('li').length;
-            $('.menu-count').innerText = `총 ${menuCount}개`;
-            $('#espresso-menu-name').value ='';
-        };
-        
     });
 }
 
