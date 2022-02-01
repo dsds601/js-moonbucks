@@ -23,32 +23,6 @@ function App(){
     const updateMenuCount = () => {
         $(".menu-count").innerText = `총 ${$("#espresso-menu-list").querySelectorAll("li").length}개`;
     }
-    
-    $('#espresso-menu-list').addEventListener("click",(e) => {
-        //target으로 element를 확인 할 수 있다. 부모 태그를 잡아 이벤트리스너로 이벤트를 위임할 수 있다.
-        //부모 하위에 있는 엘레멘트들에 클릭을 모두 감지함
-        if (e.target.classList.contains('menu-edit-button')){
-            //const menuName = e.target.previousElementSibling.innerText;
-            //closest 제일 가까운 리스 태그 찾는다 그 엘레멘트속 menu- name 을 찾는다.
-            const $menuName = e.target.closest("li").querySelector(".menu-name"); 
-            //prompt 반환값 -> 수정된 value
-            const updatedMenuName = prompt("메뉴명을 수정하세요",$menuName.innerText);
-            $menuName.innerText = updatedMenuName;
-        }
-
-        if(e.target.classList.contains('menu-remove-button')){
-            if(confirm("정말 삭제하시겠습니까?")) {
-                e.target.closest("li").remove();
-                updateMenuCount();
-            }
-        }
-    });
-
-    // form 태그가 전송되는것을 막아준다.
-    $('#espresso-menu-form').addEventListener("submit",(e) =>{
-        //preventDefault 기존 이벤트를 막는 메서드
-        e.preventDefault();
-    })
 
     const addMenuName = () =>{
         if($('#espresso-menu-name').value.trim() === ''){
@@ -81,15 +55,50 @@ function App(){
         $('#espresso-menu-name').value ='';
     };
 
-    $('#espresso-menu-name').addEventListener("keypress",(e) => {
-        if(e.key === 'Enter'){
-            addMenuName();
+    const updateMenuName = (e) =>{
+            
+            //closest 제일 가까운 리스 태그 찾는다 그 엘레멘트속 menu- name 을 찾는다.
+            const $menuName = e.target.closest("li").querySelector(".menu-name"); 
+            //prompt 반환값 -> 수정된 value
+            const updatedMenuName = prompt("메뉴명을 수정하세요",$menuName.innerText);
+            $menuName.innerText = updatedMenuName;
+    }
+    
+    const removeMenuName = (e) => {
+        if(confirm("정말 삭제하시겠습니까?")) {
+            e.target.closest("li").remove();
+            updateMenuCount();
+            }
+    }
+
+    $('#espresso-menu-list').addEventListener("click",(e) => {
+        //target으로 element를 확인 할 수 있다. 부모 태그를 잡아 이벤트리스너로 이벤트를 위임할 수 있다.
+        //부모 하위에 있는 엘레멘트들에 클릭을 모두 감지함
+        if (e.target.classList.contains('menu-edit-button')){
+            //const menuName = e.target.previousElementSibling.innerText;
+            updateMenuName(e);
         }
+
+        if(e.target.classList.contains('menu-remove-button')){
+            removeMenuName(e);
+            }
+    });
+
+    // form 태그가 전송되는것을 막아준다.
+    $('#espresso-menu-form').addEventListener("submit",(e) =>{
+        //preventDefault 기존 이벤트를 막는 메서드
+        e.preventDefault();
     })
 
-    $('#espresso-menu-submit-button').addEventListener("click",() => {
+    
+    $('#espresso-menu-name').addEventListener("keypress",(e) => {
+        if(e.key !== 'Enter'){
+            return;
+        }
         addMenuName();
     });
+
+    $('#espresso-menu-submit-button').addEventListener("click",addMenuName);
 }
 
 App();
