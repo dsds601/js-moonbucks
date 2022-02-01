@@ -1,24 +1,31 @@
-//요구사항
-//step1
-//TODO 메뉴 추가
-// 에스프레소 메뉴에 새로운 메뉴를 확인 버튼 또는 엔터키 입력으로 추가한다.
-//  메뉴가 추가되고 나면, input은 빈 값으로 초기화한다.
-//  사용자 입력값이 빈 값이라면 추가되지 않는다.
-// TODO 수정
-//  메뉴의 수정 버튼을 눌러 메뉴 이름 수정할 수 있다. -> 모달창이 뜨떠서 이름을 받음
-//  메뉴 수정시 브라우저에서 제공하는 prompt 인터페이스를 활용한다.
+// localStorage에 데이터 저장 -> 새로고침후에도 데이터 보존
+//  - 데이터 저장
+//  - 데이터 읽기
 
-// TODO 삭제
-    //TODO 삭제 버튼
-    // 메뉴 삭제버튼 클릭 이벤트 -> 삭제 컨펌 모달
-    // 확인 -> 삭제
-    // 삭제 후 총 갯수
+// 종류별 메뉴판 관리 기능
+//  
+
+// 페이지 최초 접근시 에스프레소 category default
+// 품절버튼 -> sold-out class 추가하여 상태 변경
+
 
 // $ 표시는 html에 DOM element를 가져올때 관용적으로 사용합니다. 
-// 람다식 => 한줄이면 바로 리턴값이 나옵니다.
 const $ = (selector) => document.querySelector(selector);
 
+const store = {
+    setLocalStorage (menu) {
+        //JSON 객체를 문자형으로 저장
+        localStorage.setItem("menu",JSON.stringify(menu));
+    },
+    getLocalStorage () {
+        localStorage.getItem("menu");
+    },
+};
+
 function App(){
+// 상태란? 변할 수 있는 데이터 (관리 필요)
+// - 갯수 , 메뉴명
+    this.menu = [];
 
     const updateMenuCount = () => {
         $(".menu-count").innerText = `총 ${$("#espresso-menu-list").querySelectorAll("li").length}개`;
@@ -30,27 +37,32 @@ function App(){
             return;
         }
         const espressoMenuName = $('#espresso-menu-name').value;
-        const menuItemTemplate = (espressoMenuName) => {return `
-        <li class="menu-list-item d-flex items-center py-2">
-            <span class="w-100 pl-2 menu-name">${espressoMenuName}</span>
-            <button
-                type="button"
-                class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
-            >
-                수정
-            </button>
-            <button
-                type="button"
-                class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
-            >
-                삭제
-            </button>
+        //menu 상태에 메뉴를 추가함
+        this.menu.push({ name: espressoMenuName });
+        store.setLocalStorage(this.menu);
+        // -> '[{"name":"americano"},{"name":"latter"}]'
+        const template = this.menu.map(item => {
+            return `
+            <li class="menu-list-item d-flex items-center py-2">
+                <span class="w-100 pl-2 menu-name">${item.name}</span>
+                <button
+                    type="button"
+                    class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
+                >
+                    수정
+                </button>
+                <button
+                    type="button"
+                    class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
+                >
+                    삭제
+                </button>
             </li>`;
-        };
-        $('#espresso-menu-list').insertAdjacentHTML(
-            "beforeend",
-            menuItemTemplate(espressoMenuName)
-        );
+        })
+        .join("");  //<- 배열안에 객체 형태로 있는 html을 String 형태로 붙여줌 
+        //[{<li></li>},{<li></li>},{<li></li>}] => [{lilili}]
+
+        $('#espresso-menu-list').innerHTML = template;
         updateMenuCount();
         $('#espresso-menu-name').value ='';
     };
@@ -101,4 +113,4 @@ function App(){
     $('#espresso-menu-submit-button').addEventListener("click",addMenuName);
 }
 
-App();
+const app = new App();
