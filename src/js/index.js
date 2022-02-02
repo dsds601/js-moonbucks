@@ -10,17 +10,9 @@
 
 
 // $ 표시는 html에 DOM element를 가져올때 관용적으로 사용합니다. 
-const $ = (selector) => document.querySelector(selector);
+import { $ } from "./utils/dom.js";
 
-const store = {
-    setLocalStorage (menu) {
-        //JSON 객체를 문자형으로 저장
-        localStorage.setItem("menu",JSON.stringify(menu));
-    },
-    getLocalStorage () {
-        return JSON.parse(localStorage.getItem("menu"));
-    },
-};
+import store from "./store/index.js";
 
 function App(){
 // 상태란? 변할 수 있는 데이터 (관리 필요)
@@ -40,6 +32,7 @@ function App(){
             this.menu = store.getLocalStorage();
         }
         render();
+        initEventListeners();
     }
 
     const render = () => {
@@ -47,7 +40,15 @@ function App(){
         .map((menuItem,index) => {
                 return `
                 <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
-                    <span class="w-100 pl-2 menu-name">${menuItem.name}</span>
+                    <span class="w-100 pl-2 menu-name
+                    ${menuItem.soldOut ? "sold-out" : ""}
+                    ">${menuItem.name}</span>
+                    <button
+                        type="button"
+                        class="bg-gray-50 text-gray-500 text-sm mr-1 menu-sold-out-button"
+                    >
+                        품절
+                    </button>
                     <button
                         type="button"
                         class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
@@ -70,7 +71,7 @@ function App(){
     }
 
     const updateMenuCount = () => {
-        $(".menu-count").innerText = `총 ${$("#menu-list").querySelectorAll("li").length}개`;
+        $(".menu-count").innerText = `총 ${this.menu[this.currentCategory].length}개`;
     }
 
     const addMenuName = () =>{
@@ -96,7 +97,7 @@ function App(){
             this.menu[this.currentCategory][menuId].name = updatedMenuName;
             console.log(this.menu);
             store.setLocalStorage(this.menu);
-            $menuName.innerText = updatedMenuName;
+            render();
     }
     
     const removeMenuName = (e) => {
@@ -104,49 +105,68 @@ function App(){
             const menuId = e.target.closest("li").dataset.menuId;
             this.menu[this.currentCategory].splice(menuId,1);
             store.setLocalStorage(this.menu);
-            e.target.closest("li").remove();
-            updateMenuCount();
+            render();            
             }
     }
 
-    $('#menu-list').addEventListener("click",(e) => {
-        //target으로 element를 확인 할 수 있다. 부모 태그를 잡아 이벤트리스너로 이벤트를 위임할 수 있다.
-        //부모 하위에 있는 엘레멘트들에 클릭을 모두 감지함
-        if (e.target.classList.contains('menu-edit-button')){
-            //const menuName = e.target.previousElementSibling.innerText;
-            updateMenuName(e);
-        }
+    const soldOutMenu = (e) => {
+        const menuId = e.target.closest("li").dataset.menuId;
+        this.menu[this.currentCategory][menuId].soldOut = 
+        //boolean 형태로 두면 토글 형태로 true false가 바뀐다. -> 클릭시 true 반전 false에 반전
+            !this.menu[this.currentCategory][menuId].soldOut;
+        store.setLocalStorage(this.menu);
+        render();
+    }
 
-        if(e.target.classList.contains('menu-remove-button')){
-            removeMenuName(e);
+    const initEventListeners = () => {
+        $('#menu-list').addEventListener("click",(e) => {
+            //target으로 element를 확인 할 수 있다. 부모 태그를 잡아 이벤트리스너로 이벤트를 위임할 수 있다.
+            //부모 하위에 있는 엘레멘트들에 클릭을 모두 감지함
+            if (e.target.classList.contains('menu-edit-button')){
+                //const menuName = e.target.previousElementSibling.innerText;
+                updateMenuName(e);
+                return;
             }
-    });
-
-    // form 태그가 전송되는것을 막아준다.
-    $('#menu-form').addEventListener("submit",(e) =>{
-        //preventDefault 기존 이벤트를 막는 메서드
-        e.preventDefault();
-    })
-
     
-    $('#menu-name').addEventListener("keypress",(e) => {
-        if(e.key !== 'Enter'){
-            return;
-        }
-        addMenuName();
-    });
+            if(e.target.classList.contains('menu-remove-button')){
+                removeMenuName(e);
+                return;
+            }
+            
+            if(e.target.classList.contains('menu-sold-out-button')){
+                soldOutMenu(e);
+                return;
+            }
+        });
+    
+        // form 태그가 전송되는것을 막아준다.
+        $('#menu-form').addEventListener("submit",(e) =>{
+            //preventDefault 기존 이벤트를 막는 메서드
+            e.preventDefault();
+        })
+    
+        
+        $('#menu-name').addEventListener("keypress",(e) => {
+            if(e.key !== 'Enter'){
+                return;
+            }
+            addMenuName();
+        });
+    
+        $('#menu-submit-button').addEventListener("click",addMenuName);
+    
+        $('nav').addEventListener("click", (e) => {
+            const isCategoryButton = e.target.classList.contains("cafe-category-name");
+            if(isCategoryButton){
+                const categoryName = e.target.dataset.categoryName;
+                this.currentCategory = categoryName;
+                $('#categoryTitle').innerText = e.target.innerText;
+                render();
+            }
+        });
+    }
 
-    $('#menu-submit-button').addEventListener("click",addMenuName);
-
-    $('nav').addEventListener("click", (e) => {
-        const isCategoryButton = e.target.classList.contains("cafe-category-name");
-        if(isCategoryButton){
-            const categoryName = e.target.dataset.categoryName;
-            this.currentCategory = categoryName;
-            $('#categoryTitle').innerText = e.target.innerText;
-            render();
-        }
-    })
+   
 }
 
     
