@@ -25,16 +25,25 @@ const store = {
 function App(){
 // 상태란? 변할 수 있는 데이터 (관리 필요)
 // - 갯수 , 메뉴명
-    this.menu = [];
+    this.menu = {
+        espresso : [],
+        frappuccino : [],
+        blended : [],
+        teavana : [],
+        desert : [],
+    };
+
+    this.currentCategory = "espresso";
+
     this.init = () => {
-        if(store.getLocalStorage().length > 1){
+        if(store.getLocalStorage()){
             this.menu = store.getLocalStorage();
         }
         render();
     }
 
     const render = () => {
-        const template = this.menu
+        const template = this.menu[this.currentCategory]
         .map((menuItem,index) => {
                 return `
                 <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
@@ -56,26 +65,26 @@ function App(){
         .join("");  //<- 배열안에 객체 형태로 있는 html을 String 형태로 붙여줌 
         //[{<li></li>},{<li></li>},{<li></li>}] => [{lilili}]
 
-        $('#espresso-menu-list').innerHTML = template;
+        $('#menu-list').innerHTML = template;
         updateMenuCount();
     }
 
     const updateMenuCount = () => {
-        $(".menu-count").innerText = `총 ${$("#espresso-menu-list").querySelectorAll("li").length}개`;
+        $(".menu-count").innerText = `총 ${$("#menu-list").querySelectorAll("li").length}개`;
     }
 
     const addMenuName = () =>{
-        if($('#espresso-menu-name').value.trim() === ''){
+        if($('#menu-name').value.trim() === ''){
             alert("입력값이 빈 값입니다.");
             return;
         }
-        const espressoMenuName = $('#espresso-menu-name').value;
+        const espressoMenuName = $('#menu-name').value;
         //menu 상태에 메뉴를 추가함
-        this.menu.push({ name: espressoMenuName });
+        this.menu[this.currentCategory].push({ name: espressoMenuName });
         store.setLocalStorage(this.menu);
         // -> '[{"name":"americano"},{"name":"latter"}]' JSON 형태로 저장
         render();
-        $('#espresso-menu-name').value ='';
+        $('#menu-name').value ='';
     };
 
     const updateMenuName = (e) =>{
@@ -84,7 +93,7 @@ function App(){
             const $menuName = e.target.closest("li").querySelector(".menu-name"); 
             //prompt 반환값 -> 수정된 value
             const updatedMenuName = prompt("메뉴명을 수정하세요",$menuName.innerText);
-            this.menu[menuId].name = updatedMenuName;
+            this.menu[this.currentCategory][menuId].name = updatedMenuName;
             console.log(this.menu);
             store.setLocalStorage(this.menu);
             $menuName.innerText = updatedMenuName;
@@ -93,14 +102,14 @@ function App(){
     const removeMenuName = (e) => {
         if(confirm("정말 삭제하시겠습니까?")) {
             const menuId = e.target.closest("li").dataset.menuId;
-            this.menu.splice(menuId,1);
+            this.menu[this.currentCategory].splice(menuId,1);
             store.setLocalStorage(this.menu);
             e.target.closest("li").remove();
             updateMenuCount();
             }
     }
 
-    $('#espresso-menu-list').addEventListener("click",(e) => {
+    $('#menu-list').addEventListener("click",(e) => {
         //target으로 element를 확인 할 수 있다. 부모 태그를 잡아 이벤트리스너로 이벤트를 위임할 수 있다.
         //부모 하위에 있는 엘레멘트들에 클릭을 모두 감지함
         if (e.target.classList.contains('menu-edit-button')){
@@ -114,21 +123,33 @@ function App(){
     });
 
     // form 태그가 전송되는것을 막아준다.
-    $('#espresso-menu-form').addEventListener("submit",(e) =>{
+    $('#menu-form').addEventListener("submit",(e) =>{
         //preventDefault 기존 이벤트를 막는 메서드
         e.preventDefault();
     })
 
     
-    $('#espresso-menu-name').addEventListener("keypress",(e) => {
+    $('#menu-name').addEventListener("keypress",(e) => {
         if(e.key !== 'Enter'){
             return;
         }
         addMenuName();
     });
 
-    $('#espresso-menu-submit-button').addEventListener("click",addMenuName);
+    $('#menu-submit-button').addEventListener("click",addMenuName);
+
+    $('nav').addEventListener("click", (e) => {
+        const isCategoryButton = e.target.classList.contains("cafe-category-name");
+        if(isCategoryButton){
+            const categoryName = e.target.dataset.categoryName;
+            this.currentCategory = categoryName;
+            $('#categoryTitle').innerText = e.target.innerText;
+            render();
+        }
+    })
 }
+
+    
 
 const app = new App();
 app.init();
