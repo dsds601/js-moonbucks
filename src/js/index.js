@@ -14,6 +14,9 @@ import { $ } from "./utils/dom.js";
 
 import store from "./store/index.js";
 
+const BASE_URL = 'http://localhost:3000/api';
+
+
 function App(){
 // 상태란? 변할 수 있는 데이터 (관리 필요)
 // - 갯수 , 메뉴명
@@ -79,13 +82,26 @@ function App(){
             alert("입력값이 빈 값입니다.");
             return;
         }
-        const espressoMenuName = $('#menu-name').value;
+        const menuName = $('#menu-name').value;
         //menu 상태에 메뉴를 추가함
-        this.menu[this.currentCategory].push({ name: espressoMenuName });
-        store.setLocalStorage(this.menu);
+        fetch(`${BASE_URL}/category/${this.currentCategory}/menu`, {
+            method: "POST" ,
+            headers : {
+                "Content-Type": "application/json",
+            },
+            body : JSON.stringify({name:menuName}),
+        }).then ((response) => {
+            return response.json();
+        }).then((data) => {
+            console.log(data);
+        });
+
+
+        //this.menu[this.currentCategory].push({ name: espressoMenuName });
+        //store.setLocalStorage(this.menu);
         // -> '[{"name":"americano"},{"name":"latter"}]' JSON 형태로 저장
-        render();
-        $('#menu-name').value ='';
+        //render();
+        //$('#menu-name').value ='';
     };
 
     const updateMenuName = (e) =>{
