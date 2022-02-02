@@ -18,7 +18,7 @@ const store = {
         localStorage.setItem("menu",JSON.stringify(menu));
     },
     getLocalStorage () {
-        localStorage.getItem("menu");
+        return JSON.parse(localStorage.getItem("menu"));
     },
 };
 
@@ -26,6 +26,39 @@ function App(){
 // 상태란? 변할 수 있는 데이터 (관리 필요)
 // - 갯수 , 메뉴명
     this.menu = [];
+    this.init = () => {
+        if(store.getLocalStorage().length > 1){
+            this.menu = store.getLocalStorage();
+        }
+        render();
+    }
+
+    const render = () => {
+        const template = this.menu
+        .map((menuItem,index) => {
+                return `
+                <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
+                    <span class="w-100 pl-2 menu-name">${menuItem.name}</span>
+                    <button
+                        type="button"
+                        class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
+                    >
+                        수정
+                    </button>
+                    <button
+                        type="button"
+                        class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
+                    >
+                        삭제
+                    </button>
+                </li>`;
+        })
+        .join("");  //<- 배열안에 객체 형태로 있는 html을 String 형태로 붙여줌 
+        //[{<li></li>},{<li></li>},{<li></li>}] => [{lilili}]
+
+        $('#espresso-menu-list').innerHTML = template;
+        updateMenuCount();
+    }
 
     const updateMenuCount = () => {
         $(".menu-count").innerText = `총 ${$("#espresso-menu-list").querySelectorAll("li").length}개`;
@@ -40,44 +73,28 @@ function App(){
         //menu 상태에 메뉴를 추가함
         this.menu.push({ name: espressoMenuName });
         store.setLocalStorage(this.menu);
-        // -> '[{"name":"americano"},{"name":"latter"}]'
-        const template = this.menu.map(item => {
-            return `
-            <li class="menu-list-item d-flex items-center py-2">
-                <span class="w-100 pl-2 menu-name">${item.name}</span>
-                <button
-                    type="button"
-                    class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
-                >
-                    수정
-                </button>
-                <button
-                    type="button"
-                    class="bg-gray-50 text-gray-500 text-sm menu-remove-button"
-                >
-                    삭제
-                </button>
-            </li>`;
-        })
-        .join("");  //<- 배열안에 객체 형태로 있는 html을 String 형태로 붙여줌 
-        //[{<li></li>},{<li></li>},{<li></li>}] => [{lilili}]
-
-        $('#espresso-menu-list').innerHTML = template;
-        updateMenuCount();
+        // -> '[{"name":"americano"},{"name":"latter"}]' JSON 형태로 저장
+        render();
         $('#espresso-menu-name').value ='';
     };
 
     const updateMenuName = (e) =>{
-            
+            const menuId = e.target.closest("li").dataset.menuId
             //closest 제일 가까운 리스 태그 찾는다 그 엘레멘트속 menu- name 을 찾는다.
             const $menuName = e.target.closest("li").querySelector(".menu-name"); 
             //prompt 반환값 -> 수정된 value
             const updatedMenuName = prompt("메뉴명을 수정하세요",$menuName.innerText);
+            this.menu[menuId].name = updatedMenuName;
+            console.log(this.menu);
+            store.setLocalStorage(this.menu);
             $menuName.innerText = updatedMenuName;
     }
     
     const removeMenuName = (e) => {
         if(confirm("정말 삭제하시겠습니까?")) {
+            const menuId = e.target.closest("li").dataset.menuId;
+            this.menu.splice(menuId,1);
+            store.setLocalStorage(this.menu);
             e.target.closest("li").remove();
             updateMenuCount();
             }
@@ -114,3 +131,4 @@ function App(){
 }
 
 const app = new App();
+app.init();
